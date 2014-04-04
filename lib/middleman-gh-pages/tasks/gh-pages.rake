@@ -6,11 +6,12 @@ end
 
 PROJECT_ROOT = `git rev-parse --show-toplevel`.strip
 BUILD_DIR    = File.join(PROJECT_ROOT, "build")
-GH_PAGES_REF = File.join(BUILD_DIR, ".git/refs/remotes/#{remote_name}/gh-pages")
+TARGET_BRANCH  = "gh-pages"
+TARGET_REF = File.join(BUILD_DIR, ".git/refs/remotes/#{remote_name}/#{TARGET_BRANCH}")
 
 directory BUILD_DIR
 
-file GH_PAGES_REF => BUILD_DIR do
+file TARGET_REF => BUILD_DIR do
   repo_url = nil
 
   cd PROJECT_ROOT do
@@ -22,26 +23,26 @@ file GH_PAGES_REF => BUILD_DIR do
     sh "git remote add #{remote_name} #{repo_url}"
     sh "git fetch #{remote_name}"
 
-    if `git branch -r` =~ /gh-pages/
-      sh "git checkout gh-pages"
+    if `git branch -r` =~ Regexp.new( TARGET_BRANCH )
+      sh "git checkout #{TARGET_BRANCH}"
     else
-      sh "git checkout --orphan gh-pages"
+      sh "git checkout --orphan #{TARGET_BRANCH}"
       sh "touch index.html"
       sh "git add ."
-      sh "git commit -m 'initial gh-pages commit'"
-      sh "git push #{remote_name} gh-pages"
+      sh "git commit -m 'initial #{TARGET_BRANCH} commit'"
+      sh "git push #{remote_name} #{TARGET_BRANCH}"
     end
   end
 end
 
 # Alias to something meaningful
-task :prepare_git_remote_in_build_dir => GH_PAGES_REF
+task :prepare_git_remote_in_build_dir => TARGET_REF
 
-# Fetch upstream changes on gh-pages branch
+# Fetch upstream changes on TARGET_BRANCH branch
 task :sync do
   cd BUILD_DIR do
     sh "git fetch #{remote_name}"
-    sh "git reset --hard #{remote_name}/gh-pages"
+    sh "git reset --hard #{remote_name}/#{TARGET_BRANCH}"
   end
 end
 
@@ -77,6 +78,6 @@ task :publish => [:not_dirty, :prepare_git_remote_in_build_dir, :sync, :build] d
     else
       sh "git commit -m \"#{message}\""
     end
-    sh "git push #{remote_name} gh-pages"
+    sh "git push #{remote_name} #{TARGET_BRANCH}"
   end
 end
