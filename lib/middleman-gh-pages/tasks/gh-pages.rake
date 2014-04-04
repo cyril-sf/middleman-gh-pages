@@ -6,7 +6,7 @@ end
 
 PROJECT_ROOT = `git rev-parse --show-toplevel`.strip
 BUILD_DIR    = File.join(PROJECT_ROOT, "build")
-TARGET_BRANCH  = "gh-pages"
+TARGET_BRANCH  = "master"
 TARGET_REF = File.join(BUILD_DIR, ".git/refs/remotes/#{remote_name}/#{TARGET_BRANCH}")
 
 directory BUILD_DIR
